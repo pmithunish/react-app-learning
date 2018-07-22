@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
 import registerServiceWorker from "./registerServiceWorker";
+import { Provider } from "react-redux";
 
 import { combineReducers, createStore } from "redux";
 
@@ -83,27 +84,10 @@ const todoApp = combineReducers({
 
 const store = createStore(todoApp);
 
-export const MyStoreContext = React.createContext();
-
-class MyStoreProvider extends React.Component {
-  state = {
-    getStoreState: () => store.getState(),
-    getStore: () => store,
-    dispatchAction: action => store.dispatch(action)
-  };
-  render() {
-    return (
-      <MyStoreContext.Provider value={this.state}>
-        {this.props.children}
-      </MyStoreContext.Provider>
-    );
-  }
-}
-
 ReactDOM.render(
-  <MyStoreProvider>
+  <Provider store={store}>
     <App />
-  </MyStoreProvider>,
+  </Provider>,
   document.getElementById("root")
 );
 registerServiceWorker();

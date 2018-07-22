@@ -1,15 +1,16 @@
 import React from "react";
-import { MyStoreContext } from "./../index";
+import { connect } from "react-redux";
 import { FILTERS, ACTION } from "./../index";
 
-const handleSetVisibilityFilter = filter => {
+// action creators (=> setVisibilityFilter): are nice way to document complex applications
+const setVisibilityFilter = filter => {
   return {
     type: ACTION.SET_VISIBILITY_FILTER,
     filter
   };
 };
 
-const TodoFooter = ({ context }) => {
+const TodoFooter = () => {
   const filters = Object.keys(FILTERS).map(key => ({
     filter: FILTERS[key],
     name: key.split("_").join(" ")
@@ -20,39 +21,12 @@ const TodoFooter = ({ context }) => {
       {filters.map(({ filter, name }, index) => (
         <React.Fragment key={index}>
           <br />
-          <FilterLink filter={filter} context={context}>
-            {name}
-          </FilterLink>
+          <FilterLink filter={filter}>{name}</FilterLink>
         </React.Fragment>
       ))}
     </p>
   );
 };
-
-class FilterLink extends React.Component {
-  componentDidMount() {
-    const store = this.props.context.getStore();
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  render() {
-    const { filter } = this.props;
-    const { visibilityFilter } = this.props.context.getStoreState();
-    const dispatchAction = action => this.props.context.dispatchAction(action);
-    return (
-      <Link
-        active={filter === visibilityFilter}
-        onClickHandler={() => dispatchAction(handleSetVisibilityFilter(filter))}
-      >
-        {this.props.children}
-      </Link>
-    );
-  }
-}
 
 const Link = ({ children, active, onClickHandler }) => {
   if (active) {
@@ -71,8 +45,21 @@ const Link = ({ children, active, onClickHandler }) => {
   );
 };
 
-export default props => (
-  <MyStoreContext.Consumer>
-    {context => <TodoFooter {...props} context={context} />}
-  </MyStoreContext.Consumer>
-);
+const mapStateToProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
+  };
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    onClickHandler: () => dispatch(setVisibilityFilter(ownProps.filter))
+  };
+};
+
+const FilterLink = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Link);
+
+export default TodoFooter;
